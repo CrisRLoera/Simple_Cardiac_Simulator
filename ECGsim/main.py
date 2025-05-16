@@ -30,7 +30,7 @@ class Scene:
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont(None, 24)
-        self.font_c = pygame.font.SysFont("consolas",18)
+        self.font_c = pygame.font.SysFont("consolas",15)
 
         self.reset()
 
@@ -122,7 +122,6 @@ class Scene:
             for item in self.scene_objects:
                 item.draw()
 
-            # Mostrar tiempo, etapa y fonocardiograma
             etapa = self.get_etapa_actual(seconds)
             text_surface = self.font.render(f"Tiempo: {seconds:02}s", True, (0, 255, 0))
             text_stage = self.font.render(f"Etapa: {etapa}", True, (0, 255, 0))
@@ -141,7 +140,6 @@ class Scene:
             self.screen.blit(text_stage, (10, 35))
             self.screen.blit(text_fono, (10, self.HEIGHT - 110))
 
-            # Mostrar resumen de etapas
             stages = [
                 f"1. A. Mitral/Tricúspide: {self.A_MT:02}s",
                 f"2. C. Mitral/Tricúspide: {self.C_MT:02}s",
@@ -153,7 +151,26 @@ class Scene:
             for i, line in enumerate(stages):
                 text = self.font.render(line, True, (200, 200, 200))
                 self.screen.blit(text, (self.WIDTH//2, self.HEIGHT - 118 + (i * 18)))
+            panel_x = self.WIDTH - 200
+            panel_y = 10
+            pygame.draw.rect(self.screen, (50, 50, 50), (panel_x - 10, panel_y - 10, 190, 100))
 
+
+            text_panel = self.font.render("Estado de Válvulas", True, (255, 255, 255))
+            self.screen.blit(text_panel, (panel_x, panel_y))
+
+            valves = [
+                ("Mitral", self.valve_objects_flow[0].valve_state),
+                ("Tricúspide", self.valve_objects_flow[1].valve_state),
+                ("Aórtica", self.valve_A_opened),
+                ("Pulmonar", self.valve_P_opened)
+            ]
+
+            for i, (name, state) in enumerate(valves):
+                color = (0, 255, 0) if state else (255, 0, 0)
+                pygame.draw.circle(self.screen, color, (panel_x, panel_y + 30 + i * 20), 5)
+                text_valve = self.font_c.render(f"{name}: {'Abierta' if state else 'Cerrada'}", True, (255, 255, 255))
+                self.screen.blit(text_valve, (panel_x + 15, panel_y + 25 + i * 20))
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -256,7 +273,6 @@ class Scene:
 
 
 if __name__ == "__main__":
-    # Claves esperadas y sus valores por defecto
     campos_esperados = {
         'Tipo de ECG': [],
         'Índice pico R (S1)': 0,
@@ -294,18 +310,16 @@ if __name__ == "__main__":
                                 try:
                                     valor = int(valor)
                                 except ValueError:
-                                    pass  # conservar como string
+                                    pass
                             datos[clave] = valor
             return datos
         else:
             print("No se seleccionó ningún archivo.")
 
 
-    # Uso
     datos_cargados = cargar_datos()
     if datos_cargados:
         print("Datos cargados:", datos_cargados)
-        # Aquí continúa tu programa...
         Scene(datos_cargados)
     else:
         print("No fue posible cargar los datos")
